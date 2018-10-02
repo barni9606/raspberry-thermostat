@@ -1,5 +1,6 @@
 package com.schenkbarnabas.raspberrythermostat.regulator;
 
+import com.pi4j.io.gpio.*;
 import com.schenkbarnabas.raspberrythermostat.model.Period;
 import com.schenkbarnabas.raspberrythermostat.services.TemperatureService;
 import com.schenkbarnabas.raspberrythermostat.services.WeekService;
@@ -8,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
+import javax.annotation.PreDestroy;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -16,10 +17,22 @@ import java.time.LocalDateTime;
 @Slf4j
 public class Regulator {
 
-    @Autowired
     private TemperatureService temperatureService;
 
-    private Predictor predictor = new LinearPredictor();
+    private GpioController gpio;
+
+    private GpioPinDigitalOutput relay;
+
+    private Predictor predictor;
+
+    @Autowired
+    public Regulator(TemperatureService temperatureService) {
+        this.temperatureService = temperatureService;
+        predictor = new LinearPredictor();
+        gpio = GpioFactory.getInstance();
+        relay = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_00, "relay", PinState.HIGH);
+        gpio.setShutdownOptions(true, PinState.LOW);
+    }
 
     @Scheduled(fixedRate = 30000)
     public void regulate() {
@@ -75,10 +88,19 @@ public class Regulator {
     }
 
     private void activateRelay() {
+        relay.low();
         log.info("relay activated");
     }
 
     private void deactivateRelay() {
+        relay.high();
         log.info("relay deactivated");
+    }
+
+    @PreDestroy
+    public void dispose() {
+        log.info("Shutting down GPIO controllers, and tasks.");
+        relay.high();
+        gpio.shutdown();
     }
 }
