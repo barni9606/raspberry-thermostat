@@ -12,5 +12,5 @@ import lombok.Setter;
 public class Period {
     private Time start;
     private Time finish;
-    private float temperature;
+    private float temp;
 }

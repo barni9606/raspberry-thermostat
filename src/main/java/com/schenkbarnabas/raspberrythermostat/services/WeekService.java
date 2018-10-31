@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.schenkbarnabas.raspberrythermostat.model.Day;
 import com.schenkbarnabas.raspberrythermostat.model.Period;
+import com.schenkbarnabas.raspberrythermostat.model.Program;
 import com.schenkbarnabas.raspberrythermostat.model.Time;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,14 +21,14 @@ public class WeekService {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
     @Getter
-    private static List<Day> currentWeek = new ArrayList<>();
+    private static Program currentWeek = new Program();
     private static final String weekFilePathName = "week.json";
 
     static {
         loadCurrentWeek();
     }
 
-    public static void saveCurrentWeek(List<Day> week) {
+    public static void saveCurrentWeek(Program week) {
         try {
             currentWeek = week;
             objectMapper.writer().writeValue(new File(weekFilePathName), currentWeek);
@@ -40,7 +41,7 @@ public class WeekService {
         File file = new File(weekFilePathName);
         if (file.exists()) {
             try {
-                currentWeek= objectMapper.readValue(file, new TypeReference<List<Day>>(){});
+                currentWeek = objectMapper.readValue(file, Program.class);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -49,19 +50,19 @@ public class WeekService {
         }
     }
 
-    public static List<Day> getDefaultWeek() {
+    public static Program getDefaultWeek() {
         List<Day> week = new ArrayList<>();
         for (int i = 0; i < 7; i++) {
             Period period = new Period();
             period.setStart(new Time(0, 0));
             period.setFinish(new Time(24, 0));
-            period.setTemperature(20.f);
+            period.setTemp(20.f);
             Day day = new Day();
             List<Period> periods = new ArrayList<>();
             periods.add(period);
             day.setPeriods(periods);
             week.add(day);
         }
-        return week;
+        return new Program(week);
     }
 }

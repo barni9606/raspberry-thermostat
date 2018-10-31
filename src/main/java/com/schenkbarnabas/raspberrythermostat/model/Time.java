@@ -11,21 +11,21 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Time {
-    private int hours;
-    private int minutes;
+    private int hour;
+    private int minute;
 
     @JsonIgnore
     public int getTimeInt() {
-        return hours * 60 + minutes;
+        return hour * 60 + minute;
     }
 
     @JsonIgnore
     public boolean isEndOfDay() {
-        return hours == 24 && minutes == 0;
+        return hour == 24 && minute == 0;
     }
 
     @JsonIgnore
     public boolean isStartOfDay() {
-        return hours == 0 && minutes == 0;
+        return hour == 0 && minute == 0;
     }
 }

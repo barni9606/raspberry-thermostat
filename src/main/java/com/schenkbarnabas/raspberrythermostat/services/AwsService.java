@@ -28,6 +28,9 @@ public class AwsService {
     private AWSIotMqttClient client;
     private AWSIotDevice device;
 
+    private final String topicName;
+    private final AWSIotQos topicQos = AWSIotQos.QOS1;
+
     @Autowired
     private TemperatureService temperatureService;
 
@@ -36,9 +39,18 @@ public class AwsService {
     public AwsService() {
         loadAwsConfig();
 
+        topicName = awsConfig.getThingName() + "/program";
+
         SampleUtil.KeyStorePasswordPair pair = SampleUtil.getKeyStorePasswordPair(awsConfig.getCertificateFile(), awsConfig.getPrivateKeyFile());
         client = new AWSIotMqttClient(awsConfig.getClientEndpoint(), awsConfig.getClientId(), pair.keyStore, pair.keyPassword);
         device = new AWSIotDevice(awsConfig.getThingName());
+
+        AWSIotTopic topic = new MyTopic(topicName, topicQos);
+        try {
+            client.subscribe(topic, false);
+        } catch (AWSIotException e) {
+            e.printStackTrace();
+        }
 
         try {
             client.attach(device);

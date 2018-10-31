@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 public class LinearPredictor implements Predictor {
     private LocalDateTime predictionTimeStart;
     private float predictionTempStart;
-    private float scalar = 10; // [minutes / dC°]
+    private float scalar = 10; // [minute / dC°]
 
     @Override
     public void startPredictionTime(float currentTemp) {

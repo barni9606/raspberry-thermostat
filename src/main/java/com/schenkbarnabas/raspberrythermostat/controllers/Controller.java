@@ -1,6 +1,7 @@
 package com.schenkbarnabas.raspberrythermostat.controllers;
 
 import com.schenkbarnabas.raspberrythermostat.model.Day;
+import com.schenkbarnabas.raspberrythermostat.model.Program;
 import com.schenkbarnabas.raspberrythermostat.services.TemperatureService;
 import com.schenkbarnabas.raspberrythermostat.services.WeekService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +31,12 @@ public class Controller {
     }
 
     @GetMapping("/week")
-    public List<Day> getWeek() {
+    public Program getWeek() {
         return WeekService.getCurrentWeek();
     }
 
     @PutMapping("/week")
-    public String putWeek(@RequestBody List<Day> week) {
+    public String putWeek(@RequestBody Program week) {
         WeekService.saveCurrentWeek(week);
         return "Ok";
     }

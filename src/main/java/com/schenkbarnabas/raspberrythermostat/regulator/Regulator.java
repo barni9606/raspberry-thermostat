@@ -39,7 +39,7 @@ public class Regulator {
         int day = LocalDate.now().getDayOfWeek().ordinal();
         int now = LocalDateTime.now().getHour() * 60 + LocalDateTime.now().getMinute();
 
-        float temp = currentPeriod(day, now).getTemperature();
+        float temp = currentPeriod(day, now).getTemp();
         Period nextPeriod = nextPeriod(day, now);
 
         int remainingTimeUntilNextPeriod = nextPeriod.getStart().getTimeInt() - now;
@@ -48,8 +48,8 @@ public class Regulator {
             remainingTimeUntilNextPeriod += 24 * 60;
         }
 
-        if (nextPeriod.getTemperature() > temp
-                && remainingTimeUntilNextPeriod < predictor.predict(temperatureService.getCurrentTemp(), nextPeriod.getTemperature())){
+        if (nextPeriod.getTemp() > temp
+                && remainingTimeUntilNextPeriod < predictor.predict(temperatureService.getCurrentTemp(), nextPeriod.getTemp())){
             predictor.startPredictionTime(temperatureService.getCurrentTemp());
             raise();
         } else {

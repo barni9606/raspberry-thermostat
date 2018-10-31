@@ -17,7 +17,7 @@ public interface Predictor {
      * Called when the next period has a higher temperature than the current one.
      * @param currentTemp current temperature
      * @param requiredTemp required temperature
-     * @return predicted time (in minutes) needed to get to the required temperature
+     * @return predicted time (in minute) needed to get to the required temperature
      */
     int predict(float currentTemp, float requiredTemp);
 
