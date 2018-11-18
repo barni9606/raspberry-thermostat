@@ -30,8 +30,12 @@ public class WeekService {
 
     public static void saveCurrentWeek(Program week) {
         try {
-            currentWeek = week;
-            objectMapper.writer().writeValue(new File(weekFilePathName), currentWeek);
+            if (week.getTimestamp() > currentWeek.getTimestamp()) {
+                currentWeek = week;
+                objectMapper.writer().writeValue(new File(weekFilePathName), currentWeek);
+            } else {
+                log.info("Régebbi program érkezett: " + objectMapper.writer().writeValueAsString(week));
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

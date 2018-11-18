@@ -4,8 +4,11 @@ import com.amazonaws.services.iot.client.*;
 import com.amazonaws.services.iot.client.sample.sampleUtil.SampleUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 import com.schenkbarnabas.raspberrythermostat.RaspberryThermostatApplication;
 import com.schenkbarnabas.raspberrythermostat.configs.AwsConfig;
+import com.schenkbarnabas.raspberrythermostat.model.Program;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -73,9 +76,13 @@ public class AwsService {
         if (client.getConnectionStatus() == AWSIotConnectionStatus.DISCONNECTED) {
             try {
                 client.connect(5000);
+                WeekService.saveCurrentWeek(JsonPath.parse(device.get())
+                        .read("$.state.desired.program", Program.class));
             } catch (AWSIotException e) {
                 e.printStackTrace();
             } catch (AWSIotTimeoutException e) {
+                e.printStackTrace();
+            } catch (PathNotFoundException e) {
                 e.printStackTrace();
             }
         }
@@ -95,26 +102,5 @@ public class AwsService {
                         "}" +
                 "}";
         device.update(state);
-    }
-
-    private class MyMessage extends AWSIotMessage {
-        public MyMessage(String topic, AWSIotQos qos, String payload) {
-            super(topic, qos, payload);
-        }
-
-        @Override
-        public void onSuccess() {
-            // called when message publishing succeeded
-        }
-
-        @Override
-        public void onFailure() {
-            // called when message publishing failed
-        }
-
-        @Override
-        public void onTimeout() {
-            // called when message publishing timed out
-        }
     }
 }

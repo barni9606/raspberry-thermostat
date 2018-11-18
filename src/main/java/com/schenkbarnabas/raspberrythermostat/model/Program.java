@@ -22,6 +22,7 @@ public class Program {
     private Day friday;
     private Day saturday;
     private Day sunday;
+    private long timestamp;
 
     @JsonIgnore
     public Program(List<Day> week) {
