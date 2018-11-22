@@ -103,4 +103,8 @@ public class Regulator {
         relay.high();
         gpio.shutdown();
     }
+
+    public boolean isHeating() {
+        return relay.isState(PinState.LOW);
+    }
 }

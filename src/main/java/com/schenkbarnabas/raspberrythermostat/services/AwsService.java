@@ -9,6 +9,7 @@ import com.jayway.jsonpath.PathNotFoundException;
 import com.schenkbarnabas.raspberrythermostat.RaspberryThermostatApplication;
 import com.schenkbarnabas.raspberrythermostat.configs.AwsConfig;
 import com.schenkbarnabas.raspberrythermostat.model.Program;
+import com.schenkbarnabas.raspberrythermostat.regulator.Regulator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,26 +32,33 @@ public class AwsService {
     private AWSIotMqttClient client;
     private AWSIotDevice device;
 
-    private final String topicName;
+    private final String programTopicName;
+    private final String wifiTopicName;
     private final AWSIotQos topicQos = AWSIotQos.QOS1;
 
     @Autowired
     private TemperatureService temperatureService;
+
+    @Autowired
+    private Regulator regulator;
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy. MMMM dd. HH:mm");
 
     public AwsService() {
         loadAwsConfig();
 
-        topicName = awsConfig.getThingName() + "/program";
+        programTopicName = awsConfig.getThingName() + "/program";
+        wifiTopicName = awsConfig.getThingName() + "/wifi";
 
         SampleUtil.KeyStorePasswordPair pair = SampleUtil.getKeyStorePasswordPair(awsConfig.getCertificateFile(), awsConfig.getPrivateKeyFile());
         client = new AWSIotMqttClient(awsConfig.getClientEndpoint(), awsConfig.getClientId(), pair.keyStore, pair.keyPassword);
         device = new AWSIotDevice(awsConfig.getThingName());
 
-        AWSIotTopic topic = new MyTopic(topicName, topicQos);
+        AWSIotTopic programTopic = new ProgramTopic(programTopicName, topicQos);
+        AWSIotTopic wifiTopic = new WifiTopic(wifiTopicName, topicQos);
         try {
-            client.subscribe(topic, false);
+            client.subscribe(programTopic, false);
+            client.subscribe(wifiTopic, false);
         } catch (AWSIotException e) {
             e.printStackTrace();
         }
@@ -90,15 +98,16 @@ public class AwsService {
 
     @Scheduled(fixedRate = 300000)
     private void updateShadow() throws AWSIotException {
-
         connect();
-
         // Update shadow document
         String state =
                 "{\"state\":" +
                         "{\"reported\":" +
                             "{\"temp\": \""+ temperatureService.getCurrentTemp() +"\"," +
-                            "\"time\": \""+ dateFormat.format(new Date()) +"\"}" +
+                            "\"time\": \""+ dateFormat.format(new Date()) +"\","+
+                            "\"heating\": "+ regulator.isHeating() + "," +
+                            "\"wifi\": "+ WifiService.isWirelessNetworkUsed() +
+                            "}" +
                         "}" +
                 "}";
         device.update(state);

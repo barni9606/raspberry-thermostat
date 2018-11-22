@@ -6,25 +6,25 @@ import com.amazonaws.services.iot.client.AWSIotTopic;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.schenkbarnabas.raspberrythermostat.model.Program;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
-
 @Slf4j
-public class MyTopic extends AWSIotTopic {
-
+public class WifiTopic extends AWSIotTopic {
     private final ObjectMapper objectMapper = new ObjectMapper();
+    public WifiTopic(String topic) {
+        super(topic);
+    }
 
-    public MyTopic(String topic, AWSIotQos qos) {
+    public WifiTopic(String topic, AWSIotQos qos) {
         super(topic, qos);
     }
 
     @Override
     public void onMessage(AWSIotMessage message) {
         try {
-            WeekService.saveCurrentWeek(objectMapper.readValue(message.getStringPayload(), Program.class));
+            WifiService.setNetwork(objectMapper.readValue(message.getStringPayload(), WifiConfig.class));
         } catch (JsonParseException e) {
             e.printStackTrace();
         } catch (JsonMappingException e) {
